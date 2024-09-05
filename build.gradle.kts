@@ -11,7 +11,7 @@ subprojects {
 
         maven("https://papermc.io/repo/repository/maven-public/")
         maven("https://ci.frostcast.net/plugin/repository/everything")
-
+        maven("https://maven.enginehub.org/repo/")
         maven("https://jitpack.io")
     }
 }
