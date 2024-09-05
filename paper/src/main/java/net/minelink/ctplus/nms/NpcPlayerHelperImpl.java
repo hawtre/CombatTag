@@ -20,6 +20,7 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.PlayerDataStorage;
 import net.minecraft.world.phys.Vec3;
+import net.minelink.ctplus.CombatTagPlus;
 import net.minelink.ctplus.compat.base.NpcIdentity;
 import net.minelink.ctplus.compat.base.NpcPlayerHelper;
 import org.bukkit.Bukkit;
@@ -69,14 +70,16 @@ public class NpcPlayerHelperImpl implements NpcPlayerHelper {
                 entityPlayer.getUUID(), entityPlayer.getX(), entityPlayer.getY(), entityPlayer.getZ(),
                 ((entityPlayer.getXRot() * 256f) / 360f), ((entityPlayer.getYRot() * 256f) / 360f), EntityType.PLAYER, 0, Vec3.ZERO, ((entityPlayer.getYRot() * 256f) / 360f));
         ClientboundRotateHeadPacket headRotation = new ClientboundRotateHeadPacket(entityPlayer, (byte) ((entityPlayer.getYRot() * 256f) / 360f));
-        ClientboundPlayerInfoRemovePacket playerInfoRemove = new ClientboundPlayerInfoRemovePacket(Collections.singletonList(entityPlayer.getUUID()));
 
         for (Player player : Bukkit.getOnlinePlayers()) {
             ServerGamePacketListenerImpl connection = ((CraftPlayer) player).getHandle().connection;
+            Bukkit.getScheduler().runTaskLater(CombatTagPlus.getPlugin(CombatTagPlus.class), () -> {
+                connection.send(playerInfoAdd);
+                connection.send(namedEntitySpawn);
+                connection.send(headRotation);
+            }, 1L);
             connection.send(playerInfoAdd);
             connection.send(namedEntitySpawn);
-            //connection.send(headRotation);
-            //connection.send(playerInfoRemove);
         }
     }
 
