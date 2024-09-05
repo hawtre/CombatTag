@@ -38,12 +38,12 @@ public final class TagListener implements Listener {
 
     private static final Set<PotionEffectType> harmfulEffects = ImmutableSet.of(
             PotionEffectType.BLINDNESS,
-            PotionEffectType.CONFUSION,
-            PotionEffectType.HARM,
+            PotionEffectType.NAUSEA,
+            PotionEffectType.INSTANT_DAMAGE,
             PotionEffectType.HUNGER,
             PotionEffectType.POISON,
-            PotionEffectType.SLOW,
-            PotionEffectType.SLOW_DIGGING,
+            PotionEffectType.SLOWNESS,
+            PotionEffectType.MINING_FATIGUE,
             PotionEffectType.WEAKNESS,
             PotionEffectType.WITHER
     );

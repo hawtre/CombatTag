@@ -179,6 +179,7 @@ public final class NpcListener implements Listener {
         player.getInventory().setContents(npcPlayer.getInventory().getContents());
         player.getInventory().setArmorContents(npcPlayer.getInventory().getArmorContents());
         player.addPotionEffects(npcPlayer.getActivePotionEffects());
+        player.teleport(npcPlayer.getLocation()); // TODO is actually this necessary?
     }
 
     /*
