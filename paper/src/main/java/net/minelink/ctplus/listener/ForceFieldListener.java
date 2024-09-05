@@ -7,12 +7,14 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.server.PluginDisableEvent;
+import org.bukkit.material.Colorable;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -58,7 +60,7 @@ public final class ForceFieldListener implements Listener {
 
             for (Location location : previousUpdates.get(uuid)) {
                 Block block = location.getBlock();
-                player.sendBlockChange(location, block.getType(), block.getData());
+                player.sendBlockChange(location, block.getBlockData());
             }
         }
     }
@@ -79,41 +81,40 @@ public final class ForceFieldListener implements Listener {
         final Player player = event.getPlayer();
 
         // Asynchronously send block changes around player
-        executorService.submit(new Runnable() {
-            @Override
-            public void run() {
-                // Stop processing if player has logged off
-                UUID uuid = player.getUniqueId();
-                if (!plugin.getPlayerCache().isOnline(uuid)) {
-                    previousUpdates.remove(uuid);
-                    return;
-                }
-
-                // Update the players force field perspective and find all blocks to stop spoofing
-                Set<Location> changedBlocks = getChangedBlocks(player);
-                Material forceFieldMaterial = Material.getMaterial(plugin.getSettings().getForceFieldMaterial());
-                byte forceFieldMaterialDamage = plugin.getSettings().getForceFieldMaterialDamage();
-
-                Set<Location> removeBlocks;
-                if (previousUpdates.containsKey(uuid)) {
-                    removeBlocks = previousUpdates.get(uuid);
-                } else {
-                    removeBlocks = new HashSet<>();
-                }
-
-                for (Location location : changedBlocks) {
-                    player.sendBlockChange(location, forceFieldMaterial, forceFieldMaterialDamage);
-                    removeBlocks.remove(location);
-                }
-
-                // Remove no longer used spoofed blocks
-                for (Location location : removeBlocks) {
-                    Block block = location.getBlock();
-                    player.sendBlockChange(location, block.getType(), block.getData());
-                }
-
-                previousUpdates.put(uuid, changedBlocks);
+        executorService.submit(() -> {
+            // Stop processing if player has logged off
+            UUID uuid = player.getUniqueId();
+            if (!plugin.getPlayerCache().isOnline(uuid)) {
+                previousUpdates.remove(uuid);
+                return;
             }
+
+            // Update the players force field perspective and find all blocks to stop spoofing
+            Set<Location> changedBlocks = getChangedBlocks(player);
+            BlockData forceFieldMaterial = Material.getMaterial(plugin.getSettings().getForceFieldMaterial()).createBlockData();
+            if (forceFieldMaterial instanceof Colorable) {
+                ((Colorable) forceFieldMaterial).setColor(plugin.getSettings().getForceFieldMaterialColor());
+            }
+
+            Set<Location> removeBlocks;
+            if (previousUpdates.containsKey(uuid)) {
+                removeBlocks = previousUpdates.get(uuid);
+            } else {
+                removeBlocks = new HashSet<>();
+            }
+
+            for (Location location : changedBlocks) {
+                player.sendBlockChange(location, forceFieldMaterial);
+                removeBlocks.remove(location);
+            }
+
+            // Remove no longer used spoofed blocks
+            for (Location location : removeBlocks) {
+                Block block = location.getBlock();
+                player.sendBlockChange(location, block.getType(), block.getData());
+            }
+
+            previousUpdates.put(uuid, changedBlocks);
         });
     }
 
@@ -128,10 +129,10 @@ public final class ForceFieldListener implements Listener {
         Location l = player.getLocation();
         Location loc1 = l.clone().add(r, 0, r);
         Location loc2 = l.clone().subtract(r, 0, r);
-        int topBlockX = loc1.getBlockX() < loc2.getBlockX() ? loc2.getBlockX() : loc1.getBlockX();
-        int bottomBlockX = loc1.getBlockX() > loc2.getBlockX() ? loc2.getBlockX() : loc1.getBlockX();
-        int topBlockZ = loc1.getBlockZ() < loc2.getBlockZ() ? loc2.getBlockZ() : loc1.getBlockZ();
-        int bottomBlockZ = loc1.getBlockZ() > loc2.getBlockZ() ? loc2.getBlockZ() : loc1.getBlockZ();
+        int topBlockX = Math.max(loc1.getBlockX(), loc2.getBlockX());
+        int bottomBlockX = Math.min(loc1.getBlockX(), loc2.getBlockX());
+        int topBlockZ = Math.max(loc1.getBlockZ(), loc2.getBlockZ());
+        int bottomBlockZ = Math.min(loc1.getBlockZ(), loc2.getBlockZ());
 
         // Iterate through all blocks surrounding the player
         for (int x = bottomBlockX; x <= topBlockX; x++) {

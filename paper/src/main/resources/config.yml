@@ -142,10 +142,10 @@ force-fields: true
 force-field-radius: 10
 
 # Material of the forcefield block type.
-force-field-material: STAINED_GLASS
+force-field-material: RED_STAINED_GLASS
 
-# Damage value of the material specified above.
-force-field-material-damage: 14
+# Color, if the material is a Colorable
+force-field-material-color: RED
 
 # Enables Factions integration for disabling combat tagging in regions with PVP disabled.
 factions: true

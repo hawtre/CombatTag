@@ -18,6 +18,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.ChatColor;
+import org.bukkit.DyeColor;
 import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.file.YamlConfiguration;
 
@@ -381,8 +382,8 @@ public final class Settings {
         return plugin.getConfig().getString("force-field-material");
     }
 
-    public byte getForceFieldMaterialDamage() {
-        return (byte) plugin.getConfig().getInt("force-field-material-damage");
+    public DyeColor getForceFieldMaterialColor() {
+        return DyeColor.valueOf(plugin.getConfig().getString("force-field-material-color", "RED"));
     }
 
     public boolean useFactions() {
